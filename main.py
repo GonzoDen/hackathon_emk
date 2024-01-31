@@ -40,7 +40,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-STATE1, CHECK_REPLY, DAILY_WORDS, DAILY_CHECK, HOME, PRESENT_WORD, CHECK_WORD = range(7)
+STATE1, STATE2, STATE3, DAILY_CHECK, HOME, PRESENT_WORD, CHECK_WORD = range(7)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -57,13 +57,12 @@ async def state1(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user.id
     reply_keyboard = [["кнопка2"]]
     await update.message.reply_html(
-        "Текст2",
+        "Проанализируем?",
         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,
                                          resize_keyboard=True
                                          ),
     )
 
-    # File path to your photo
     photo_path = 'sample_1.jpeg'
 
     try:
@@ -85,6 +84,39 @@ async def state1(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     #context.bot.send_photo(chat_id=user_id, photo=InputFile('http://lnkiy.in/sample_image_1'), caption='Текст')
 
+    return STATE2
+
+async def state2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = update.message.from_user.id
+    reply_keyboard = [["Дать оценку?"]]
+    await update.message.reply_html(
+        "Текстовые данные анализа",
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,
+                                         resize_keyboard=True
+                                         ),
+    )
+
+    return STATE3
+
+async def state3(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = update.message.from_user.id
+    reply_keyboard = [["Вау - этого ни один врач не увидел"]]
+
+    photo_path = 'sample_1.jpeg'
+
+    try:
+        # Check if the file exists
+        with open(photo_path, 'rb') as photo_file:
+            # Send photo
+            await context.bot.send_photo(chat_id=user_id, photo=InputFile(photo_file), caption='Оценка текст',
+                                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,
+                                                                          resize_keyboard=True
+                                                                          ),
+                                         )
+    except Exception as e:
+        print(f"Error sending photo: {e}")
+
+
     return ConversationHandler.END
 
 def main() -> None:
@@ -95,7 +127,10 @@ def main() -> None:
         states={
             STATE1: [
                 MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), state1)],
-
+            STATE2: [
+                MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), state2)],
+            STATE3: [
+                MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), state3)],
         },
         fallbacks=[],
     )
